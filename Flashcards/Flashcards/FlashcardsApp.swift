@@ -12,9 +12,9 @@ import SwiftData
 struct FlashcardsApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Flashcard.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
@@ -25,7 +25,9 @@ struct FlashcardsApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainView()
+            LearnView()
+            ManageView()
         }
         .modelContainer(sharedModelContainer)
     }
