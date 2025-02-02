@@ -2,4 +2,4 @@
 misc/*
 .DS_Store
 *.xcodeproj
-Flashcard.xcodeproj/*
+Flashcards/Flashcards.xcodeproj/*
