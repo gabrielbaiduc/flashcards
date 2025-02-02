@@ -14,7 +14,7 @@ struct FlashcardsApp: App {
         let schema = Schema([
             Flashcard.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
@@ -26,8 +26,6 @@ struct FlashcardsApp: App {
     var body: some Scene {
         WindowGroup {
             MainView()
-            LearnView()
-            ManageView()
         }
         .modelContainer(sharedModelContainer)
     }
