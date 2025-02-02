@@ -12,15 +12,19 @@ import SwiftData
 final class Flashcard {
     var id: UUID
     var frontText: String
+    var forwardScore: Float
     var backText: String
-    var difficulty: Int
+    var backwardScore: Float
+    var pos: String?
     var timestamp: Date
     
-    init(frontText: String, backText: String, difficulty: Int = 1) {
+    init(frontText: String, backText: String, pos: String? = nil) {
         self.id = UUID()
         self.frontText = frontText
+        self.forwardScore = 0.0
         self.backText = backText
-        self.difficulty = difficulty
+        self.backwardScore = 0.0
+        self.pos = pos
         self.timestamp = Date()
     }
 }
