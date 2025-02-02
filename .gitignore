@@ -1,5 +1,17 @@
 # misc
 misc/*
-.DS_Store
 *.xcodeproj
 Flashcards/Flashcards.xcodeproj/*
+
+# Build generated files
+build/
+DerivedData/
+
+# User-specific Xcode files
+xcuserdata/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+
+# macOS Finder file
+.DS_Store
