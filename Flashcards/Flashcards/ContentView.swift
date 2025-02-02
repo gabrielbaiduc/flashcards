@@ -56,9 +56,10 @@ struct LearnView: View {
     @State private var guess = ""
     @State private var rotationAngle = 0.0
     @State private var showCard = true
+    @State private var currentLang: String = "english"
     
     @FocusState private var isGuessFocused: Bool
-
+    
     var body: some View {
         VStack(spacing: 30) {
             if let card = currentCard {
@@ -85,7 +86,12 @@ struct LearnView: View {
                     .background(Color.white)
                     .cornerRadius(15)
                     .shadow(color: Color.gray.opacity(0.5), radius: 10, x: 0, y: 5)
-                    .rotation3DEffect(.degrees(rotationAngle), axis: (x: 0, y: 1, z: 0)) // Rotate the entire card
+                    .rotation3DEffect(.degrees(rotationAngle), axis: (x: 0, y: 1, z: 0))
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        let textToSpeak = isFlipped ? card.backText : card.frontText
+                        VoiceSynth.shared.speak(text: textToSpeak, language: currentLang)
+                    }
                 }
                 .padding(.horizontal)
                 .padding(.top, 20) // spacing from top
@@ -125,6 +131,9 @@ struct LearnView: View {
         .padding()
         // Prevent the keyboard from pushing the view upward.
         .onAppear(perform: loadRandomCard)
+        .onChange(of: isFlipped) {
+            currentLang = isFlipped ? "french" : "english"
+        }
     }
     
     private func loadRandomCard() {
