@@ -8,44 +8,53 @@
 import Foundation
 import AVFoundation
 
+/// Supported languages for text-to-speech
+enum Voice: String {
+    case english = "com.apple.voice.enhanced.en-GB.Stephanie"
+    case french = "com.apple.voice.enhanced.fr-FR.Thomas"
+}
+
 /// A singleton class that provides text-to-speech functionality using AVSpeechSynthesizer.
+/// 
+/// Usage example:
+/// ```swift
+/// VoiceSynth.shared.speak(text: "Hello", language: "english")
+/// ```
 class VoiceSynth {
-    
-    private let french: String = "com.apple.voice.enhanced.fr-FR.Thomas"
-    private let english: String = "com.apple.voice.enhanced.en-GB.Stephanie"
-    
-    /// Shared instance for accessing the voice synthesizer.
+    /// The shared instance for accessing the voice synthesizer.
+    /// This property ensures only one synthesizer exists in the application.
     static let shared = VoiceSynth()
-    
     /// The underlying AVSpeechSynthesizer instance.
-    private let synthesizer = AVSpeechSynthesizer()
-    
-    /// Private initializer to enforce singleton usage.
-    private init() { }
+    private let synthesizer: AVSpeechSynthesizer = AVSpeechSynthesizer()
+    // Private initializer to enforce singleton usage.
+    // We also ensure that 
+    private init() {    
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to set audio session category: \(error)")
+        }
+    }
     
     /// Speaks the provided text using the specified language and speech rate.
     /// - Parameters:
-    ///   - text: The text to be spoken.
-    ///   - language: The language code for the voice (default is "en-US"). Use appropriate language codes for your learning content.
-    ///   - rate: The speech rate. Use `AVSpeechUtteranceDefaultSpeechRate` for the default rate or adjust as needed.
-    func speak(text: String, language: String, rate: Float = AVSpeechUtteranceDefaultSpeechRate) {
-        // If the synthesizer is already speaking, stop it before starting a new utterance.
-        if synthesizer.isSpeaking {
+    ///   - text: The text to be spoken
+    ///   - language: The language to use (Voice enum)
+    ///   - rate: The speech rate (default is system default rate)
+    /// - Note: If speech is already in progress, it will be stopped before the new text is spoken
+    func speak(text: String, language: Voice, rate: Float = AVSpeechUtteranceDefaultSpeechRate) {
+        if synthesizer.isSpeaking {  // stop any ongoing speech
             synthesizer.stopSpeaking(at: .immediate)
         }
-        
-        // Create an utterance with the given text.
         let utterance = AVSpeechUtterance(string: text)
-        // Configure the voice using the provided language code.
-        if (language == "french") {
-            utterance.voice = AVSpeechSynthesisVoice(identifier: french)
+        if let voice = AVSpeechSynthesisVoice(identifier: language.rawValue) {
+            utterance.voice = voice
         } else {
-            utterance.voice = AVSpeechSynthesisVoice(identifier: english)
+            print("Failed to create voice for language: \(language)")
+            return
         }
-        // Set the desired speech rate.
         utterance.rate = rate
-        
-        // Start speaking the utterance.
         synthesizer.speak(utterance)
     }
     
