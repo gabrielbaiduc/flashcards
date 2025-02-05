@@ -25,7 +25,7 @@ struct FlashcardsApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainView()
+            MainMenuView()
         }
         .modelContainer(sharedModelContainer)
     }
