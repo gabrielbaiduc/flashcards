@@ -15,3 +15,6 @@ xcuserdata/
 
 # macOS Finder file
 .DS_Store
+
+# VSCode
+.vscode/*
