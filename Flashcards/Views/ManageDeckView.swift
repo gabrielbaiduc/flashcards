@@ -8,96 +8,151 @@
 import SwiftUI
 import SwiftData
 
-struct ManageView: View {
+struct ManageDeckView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var flashcards: [Flashcard]
-    
-    // State to manage the add flashcard sheet and input text fields.
-    @State private var isPresentingAddFlashcardSheet = false
-    @State private var newFrontText = ""
-    @State private var newBackText = ""
+
+    @StateObject private var viewModel = ManageDeckViewModel()
+    @State private var isPresentingFlashcardSheet = false
     
     var body: some View {
         List {
             ForEach(flashcards) { flashcard in
-                HStack {
-                    Text(flashcard.frontText)
-                    Spacer()
-                    Text(flashcard.backText)
+                FlashcardButton(flashcard: flashcard) {
+                    viewModel.loadFlashcard(flashcard)
+                    isPresentingFlashcardSheet = true
                 }
             }
-            .onDelete(perform: deleteFlashcards)
+            .onDelete { offsets in
+                withAnimation {
+                    viewModel.deleteFlashcards(at: offsets, from: flashcards)
+                }
+            }
         }
         .navigationTitle("Manage Deck")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                // Show the sheet when the add button is tapped.
                 Button(action: {
-                    isPresentingAddFlashcardSheet = true
+                    viewModel.resetForm()
+                    isPresentingFlashcardSheet = true
                 }) {
-                    Label("Add Flashcard", systemImage: "plus")
+                    Image(systemName: "plus")
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 EditButton()
             }
         }
-        // Present a sheet with text fields for user input.
-        .sheet(isPresented: $isPresentingAddFlashcardSheet) {
-            NavigationView {
-                Form {
-                    Section(header: Text("Front Text")) {
-                        TextField("Enter front text", text: $newFrontText)
-                    }
-                    Section(header: Text("Back Text")) {
-                        TextField("Enter back text", text: $newBackText)
-                    }
-                }
-                .navigationTitle("New Flashcard")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") {
-                            // Reset the input and dismiss the sheet.
-                            newFrontText = ""
-                            newBackText = ""
-                            isPresentingAddFlashcardSheet = false
-                        }
-                    }
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Add") {
-                            addFlashcard()
-                            isPresentingAddFlashcardSheet = false
-                        }
-                    }
+        .sheet(isPresented: $isPresentingFlashcardSheet) {
+            FlashcardFormView(viewModel: viewModel, isPresented: $isPresentingFlashcardSheet)
+        }
+    }
+}
+
+// Separate form view
+struct FlashcardFormView: View {
+    @ObservedObject var viewModel: ManageDeckViewModel
+    @Binding var isPresented: Bool
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                FlashcardFormSection(title: "Front Side", 
+                                   text: $viewModel.frontText, 
+                                   alt: $viewModel.frontAlt)
+                
+                FlashcardFormSection(title: "Back Side", 
+                                   text: $viewModel.backText, 
+                                   alt: $viewModel.backAlt)
+                
+                Section(header: Text("Additional Information")) {
+                    TextField("Part of Speech", text: $viewModel.pos)
                 }
             }
-        }
-    }
-    
-    private func addFlashcard() {
-        withAnimation {
-            let newFlashcard = Flashcard(frontText: newFrontText, backText: newBackText)
-            modelContext.insert(newFlashcard)
-            // Clear the input values.
-            newFrontText = ""
-            newBackText = ""
-        }
-    }
-    
-    private func deleteFlashcards(at offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(flashcards[index])
+            .navigationTitle(viewModel.editingFlashcard == nil ? "New Flashcard" : "Edit Flashcard")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        isPresented = false
+                        viewModel.resetForm()
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(viewModel.editingFlashcard == nil ? "Save" : "Update") {
+                        viewModel.saveFlashcard()
+                        isPresented = false
+                    }
+                    .disabled(!viewModel.isValidForm)
+                }
             }
         }
     }
 }
 
-struct ManageView_Previews: PreviewProvider {
-    static var previews: some View {
-        ManageView()
-            // For Core Data-like testing with SwiftData,
-            // wrap with modelContainer if required.
-            .modelContainer(for: Flashcard.self, inMemory: true)
+// Reusable components
+struct FlashcardFormSection: View {
+    let title: String
+    @Binding var text: String
+    @Binding var alt: String
+    
+    var body: some View {
+        Section(header: Text(title)) {
+            TextField("Primary Text", text: $text)
+            TextField("Alternative Form (Optional)", text: $alt)
+        }
+    }
+}
+
+struct FlashcardButton: View {
+    let flashcard: Flashcard
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            FlashcardRow(flashcard: flashcard)
+                .foregroundColor(.black)
+        }
+        .listRowInsets(EdgeInsets())
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color.clear)
+        .contentShape(Rectangle())
+        
+    }
+}
+
+// Separate view for the flashcard row to improve readability
+struct FlashcardRow: View {
+    let flashcard: Flashcard
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                VStack(alignment: .leading) {
+                    Text(flashcard.frontText)
+                        .font(.headline)
+                    if let alt = flashcard.frontAlt {
+                        Text(alt)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                Spacer()
+                VStack(alignment: .trailing) {
+                    Text(flashcard.backText)
+                        .font(.headline)
+                    if let alt = flashcard.backAlt {
+                        Text(alt)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            if let pos = flashcard.pos {
+                Text(pos)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
     }
 }

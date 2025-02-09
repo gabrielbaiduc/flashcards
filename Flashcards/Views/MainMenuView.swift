@@ -25,7 +25,7 @@ struct MainMenuView: View {
                         )
                 }
                 
-                NavigationLink(destination: ManageView()) {
+                NavigationLink(destination: ManageDeckView()) {
                     Text("Manage")
                         .foregroundColor(.black)
                         .font(.title)
