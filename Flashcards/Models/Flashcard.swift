@@ -8,6 +8,12 @@
 import Foundation
 import SwiftData
 
+enum Language: String, Codable, CaseIterable {
+    case english = "English"
+    case french = "French"
+    // Add additional languages as needed
+}
+
 @Model
 final class Flashcard {
     var id: UUID
@@ -20,6 +26,8 @@ final class Flashcard {
     var pos: String?
     var lastReviewed: Date?
     var score: Double = 1.0
+    
+    var deck: Deck? = nil
     
     init(frontText: String, 
          backText: String, 
