@@ -9,15 +9,23 @@ import SwiftUI
 import SwiftData
 
 struct ManageDeckView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var flashcards: [Flashcard]
-
-    @StateObject private var viewModel = ManageDeckViewModel()
+    let deck: Deck
+    let modelContext: ModelContext
+    @StateObject private var viewModel: ManageDeckViewModel
+    @Query private var allFlashcards: [Flashcard]
     @State private var isPresentingFlashcardSheet = false
     
+    init(deck: Deck, modelContext: ModelContext) {
+        self.deck = deck
+        self.modelContext = modelContext
+        _viewModel = StateObject(wrappedValue: ManageDeckViewModel(modelContext: modelContext, deck: deck))
+    }
+    
     var body: some View {
+        // Filter flashcards to only include those that belong to the current deck.
+        let deckFlashcards = allFlashcards.filter { $0.deck.id == deck.id }
         List {
-            ForEach(flashcards) { flashcard in
+            ForEach(deckFlashcards) { flashcard in
                 FlashcardButton(flashcard: flashcard) {
                     viewModel.loadFlashcard(flashcard)
                     isPresentingFlashcardSheet = true
@@ -25,7 +33,7 @@ struct ManageDeckView: View {
             }
             .onDelete { offsets in
                 withAnimation {
-                    viewModel.deleteFlashcards(at: offsets, from: flashcards)
+                    viewModel.deleteFlashcards(at: offsets, from: deckFlashcards)
                 }
             }
         }

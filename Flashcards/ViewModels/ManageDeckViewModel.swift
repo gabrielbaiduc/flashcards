@@ -4,7 +4,8 @@ import Observation
 
 @MainActor
 class ManageDeckViewModel: ObservableObject {
-    var modelContext: ModelContext!
+    private let modelContext: ModelContext
+    private let deck: Deck
     @Published var frontText = ""
     @Published var backText = ""
     @Published var frontAlt = ""
@@ -12,7 +13,10 @@ class ManageDeckViewModel: ObservableObject {
     @Published var pos = ""
     @Published var editingFlashcard: Flashcard?
 
-    init() { }
+    init(modelContext: ModelContext, deck: Deck) {
+        self.modelContext = modelContext
+        self.deck = deck
+    }
     
     func loadFlashcard(_ flashcard: Flashcard) {
         frontText = flashcard.frontText
@@ -47,7 +51,8 @@ class ManageDeckViewModel: ObservableObject {
             backText: backText,
             frontAlt: frontAlt.isEmpty ? nil : frontAlt,
             backAlt: backAlt.isEmpty ? nil : backAlt,
-            pos: pos.isEmpty ? nil : pos
+            pos: pos.isEmpty ? nil : pos,
+            deck: deck
         )
         modelContext.insert(newFlashcard)
     }

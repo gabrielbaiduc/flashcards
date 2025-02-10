@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct MainMenuView: View {
+    @Environment(\.modelContext) private var modelContext
     var body: some View {
         NavigationView {
             VStack(spacing: 40) {
@@ -25,7 +26,7 @@ struct MainMenuView: View {
                         )
                 }
                 
-                NavigationLink(destination: ManageDeckView()) {
+                NavigationLink(destination: ManageDecksView(modelContext: modelContext)) {
                     Text("Manage")
                         .foregroundColor(.black)
                         .font(.title)

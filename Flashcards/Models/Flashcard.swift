@@ -27,19 +27,21 @@ final class Flashcard {
     var lastReviewed: Date?
     var score: Double = 1.0
     
-    var deck: Deck? = nil
+    var deck: Deck
     
     init(frontText: String, 
          backText: String, 
          frontAlt: String? = nil,
          backAlt: String? = nil,
          gender: String? = nil,
-         pos: String? = nil) {
+         pos: String? = nil,
+         deck: Deck) {
         self.id = UUID()
         self.frontText = frontText
         self.backText = backText
         self.frontAlt = frontAlt
         self.backAlt = backAlt
         self.pos = pos
+        self.deck = deck
     }
 }
